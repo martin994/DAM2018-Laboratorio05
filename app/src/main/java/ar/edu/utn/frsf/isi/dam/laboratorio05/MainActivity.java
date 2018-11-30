@@ -15,8 +15,8 @@ import android.view.MenuItem;
 
 public class MainActivity extends AppCompatActivity implements FragmentManager.OnBackStackChangedListener,
         NuevoReclamoFragment.OnNuevoLugarListener {
-    private DrawerLayout drawerLayout;
-    private NavigationView navView;
+        private DrawerLayout drawerLayout;
+        private NavigationView navView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
