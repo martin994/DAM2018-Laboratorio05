@@ -26,6 +26,9 @@ public class ListaReclamosFragment extends Fragment {
     private List<Reclamo> listaReclamos;
     private ListView lvReclamos;
     private ReclamoDao reclamoDao;
+
+
+
     public ListaReclamosFragment() {
         // Required empty public constructor
     }
@@ -56,7 +59,7 @@ public class ListaReclamosFragment extends Fragment {
             f.setArguments(args);
             getActivity().getSupportFragmentManager()
                     .beginTransaction()
-                    .replace(R.id.contenido, f)
+                    .replace(R.id.contenido, f).addToBackStack(null)
                     .commit();
         }
 
@@ -85,7 +88,7 @@ public class ListaReclamosFragment extends Fragment {
             f.setArguments(args);
             getActivity().getSupportFragmentManager()
                     .beginTransaction()
-                    .replace(R.id.contenido, f)
+                    .replace(R.id.contenido, f).addToBackStack(null)
                     .commit();
         }
     };

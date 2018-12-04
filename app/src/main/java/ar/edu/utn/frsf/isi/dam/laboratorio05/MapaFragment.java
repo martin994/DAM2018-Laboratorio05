@@ -76,8 +76,21 @@ public class MapaFragment extends SupportMapFragment implements
         actualizarMapa();
         Bundle arg=getArguments();
 
-        if(arg!=null){
-            if (arg.getInt("tipo_mapa",0)==1){
+        if(arg!=null) {
+
+
+            switch (arg.getInt("tipo_mapa", 0)) {
+                case 1:
+                    googleMap.setOnMapLongClickListener(new GoogleMap.OnMapLongClickListener() {
+                        @Override
+                        public void onMapLongClick(LatLng latLng) {
+                            listener.coordenadasSeleccionadas(latLng);
+                        }
+                    });
+                    break;
+
+            }
+           /* if (arg.getInt("tipo_mapa",0)==1){
 
                 googleMap.setOnMapLongClickListener(new GoogleMap.OnMapLongClickListener() {
                     @Override
@@ -87,8 +100,7 @@ public class MapaFragment extends SupportMapFragment implements
                     }
                 });
 
-            }
-
+            }    */
 
         }
 
