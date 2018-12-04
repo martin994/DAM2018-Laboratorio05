@@ -18,6 +18,7 @@ import android.widget.Toast;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.LatLng;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -27,6 +28,20 @@ public class MapaFragment extends SupportMapFragment implements
 
     private GoogleMap miMapa;
     private int tipoMapa;
+
+    private onMapaListener listener;
+
+    //creo una interfaz para que la actividad pueda pasar paramentros al fragmento
+    public interface onMapaListener{
+
+        void coordenadasSeleccionadas(LatLng c);
+
+    }
+
+    public void setListener(onMapaListener listener) {
+        this.listener = listener;
+    }
+
 
     public MapaFragment() {
         // Required empty public constructor
@@ -55,8 +70,29 @@ public class MapaFragment extends SupportMapFragment implements
 
     @Override
     public void onMapReady(GoogleMap googleMap) {
+
+        //inicializo el mapa con una instacia de googleMap
         miMapa = googleMap;
         actualizarMapa();
+        Bundle arg=getArguments();
+
+        if(arg!=null){
+            if (arg.getInt("tipo_mapa",0)==1){
+
+                googleMap.setOnMapLongClickListener(new GoogleMap.OnMapLongClickListener() {
+                    @Override
+                    public void onMapLongClick(LatLng latLng) {
+
+                        listener.coordenadasSeleccionadas(latLng);
+                    }
+                });
+
+            }
+
+
+        }
+
+
 
     }
 
@@ -65,7 +101,7 @@ public class MapaFragment extends SupportMapFragment implements
 
         final String[] permiso = {Manifest.permission.ACCESS_FINE_LOCATION};
 
-
+        //Pido los permisos necesarios para acceder a la localizacion, sino me los da le aviso que no puede usar la funcionalidad
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M
                 && (ActivityCompat.checkSelfPermission(getContext(), Manifest.permission.ACCESS_FINE_LOCATION)
                 != PackageManager.PERMISSION_GRANTED
@@ -94,6 +130,7 @@ public class MapaFragment extends SupportMapFragment implements
             }
 
         }
+        // una vez que me da los permisos recien ahi le permito usar la funcion de localizacion
         miMapa.setMyLocationEnabled(true);
     }
 
