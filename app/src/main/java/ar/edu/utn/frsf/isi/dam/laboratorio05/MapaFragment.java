@@ -30,6 +30,7 @@ import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.MarkerOptions;
 
 import java.util.ArrayList;
+import java.util.Objects;
 
 import ar.edu.utn.frsf.isi.dam.laboratorio05.modelo.MyDatabase;
 import ar.edu.utn.frsf.isi.dam.laboratorio05.modelo.Reclamo;
@@ -84,7 +85,7 @@ public class MapaFragment extends SupportMapFragment implements
 
         getMapAsync(this);
 
-        reclamoDao=MyDatabase.getInstance(this.getActivity()).getReclamoDao();
+        reclamoDao= MyDatabase.getInstance(this.getActivity()).getReclamoDao();
         return rootView;
 
 
@@ -96,12 +97,7 @@ public class MapaFragment extends SupportMapFragment implements
         //inicializo el mapa con una instacia de googleMap
         miMapa = googleMap;
         actualizarMapa();
-        Bundle arg=getArguments();
-
-        if(arg!=null) {
-
-
-            switch (arg.getInt("tipo_mapa", 0)) {
+            switch (tipoMapa) {
                 case 1:
                     googleMap.setOnMapLongClickListener(new GoogleMap.OnMapLongClickListener() {
                         @Override
@@ -113,66 +109,33 @@ public class MapaFragment extends SupportMapFragment implements
 
                 case 2:
                     obtenerListaDeReclamos();
-
+                    break;
+                case 3:
+                    obtenerUnRelcamo();
+                    break;
             }
 
-        }
 
 
 
     }
 
 
-    public void actualizarMapa() {
+    private void actualizarMapa() {
 
-        final String[] permiso = {Manifest.permission.ACCESS_FINE_LOCATION};
-
-        //Pido los permisos necesarios para acceder a la localizacion, sino me los da le aviso que no puede usar la funcionalidad
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M
-                && (ActivityCompat.checkSelfPermission(getContext(), Manifest.permission.ACCESS_FINE_LOCATION)
-                != PackageManager.PERMISSION_GRANTED
-                && ActivityCompat.checkSelfPermission(getContext(), Manifest.permission.ACCESS_COARSE_LOCATION)
-                != PackageManager.PERMISSION_GRANTED)) {
-            if (ActivityCompat.shouldShowRequestPermissionRationale(getActivity(), Manifest.permission.ACCESS_FINE_LOCATION)) {
-                (new AlertDialog.Builder(getContext())).setTitle(getString(R.string.solicPermisoUbic)).
-                        setMessage(getString(R.string.textoSolicPermUbic)).
-                        setPositiveButton(getString(R.string.ok), new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-
-                                ActivityCompat.requestPermissions(getActivity(), permiso, 5);
-
-                            }
-                        }).setNegativeButton(getString(R.string.no), new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        Toast.makeText(getContext(), getString(R.string.errorUbicacion), Toast.LENGTH_LONG).show(); }
-                }).create().show();
-            }
-            else {
-
-                ActivityCompat.requestPermissions(getActivity(),permiso,5);
-                return;
-            }
-
+        if(ActivityCompat.checkSelfPermission(getContext(), Manifest.permission.ACCESS_FINE_LOCATION)
+                != PackageManager.PERMISSION_GRANTED){
+            ActivityCompat.requestPermissions(Objects.requireNonNull(getActivity()), new String[] {Manifest.permission.ACCESS_FINE_LOCATION},
+                    9999);
         }
-        // una vez que me da los permisos recien ahi le permito usar la funcion de localizacion
         miMapa.setMyLocationEnabled(true);
+        // una vez que me da los permisos recien ahi le permito usar la funcion de localizacion
+
     }
 
-    @Override
-    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults){
-        super.onRequestPermissionsResult(requestCode,permissions,grantResults);
-        switch(requestCode) {
-            case 5:
-                if(grantResults.length>0&& grantResults[0] == PackageManager.PERMISSION_GRANTED)
-                    actualizarMapa();
-                else
-                    Toast.makeText(getActivity(), getString(R.string.errorUbicacion), Toast.LENGTH_LONG).show();
-        }
-    }
 
-    public void obtenerListaDeReclamos(){
+
+    private void obtenerListaDeReclamos(){
         listaReclamos.clear();
         Runnable cargarReclamosConMarca = new Runnable() {
             @Override
@@ -188,13 +151,13 @@ public class MapaFragment extends SupportMapFragment implements
 
     }
 
-    public void obtenerUnRelcamo(){
+    private void obtenerUnRelcamo(){
 
         Runnable cargarReclamo = new Runnable() {
             @Override
             public void run() {
 
-                reclamo=reclamoDao.getById(getArguments().getInt("idReclamos"));
+                reclamo=reclamoDao.getById(getArguments().getInt("idReclamo"));
                 Message mensaje = gestorDeEventos.obtainMessage(EVENTO_BUSCAR_RECLAMOS);
                 mensaje.sendToTarget();
 

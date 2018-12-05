@@ -73,8 +73,9 @@ public class MainActivity extends AppCompatActivity implements FragmentManager.O
                                     fragment.setArguments(bundle);
                                     ((MapaFragment) fragment).setListener(MainActivity.this);
 
-
                                 }
+
+
                                 // configurar a la actividad como listener de los eventos del mapa ((MapaFragment) fragment).setListener(this);
                                fragmentTransaction = true;
                                 break;
