@@ -67,7 +67,12 @@ public class MainActivity extends AppCompatActivity implements FragmentManager.O
                                 fragment =  getSupportFragmentManager().findFragmentByTag(tag);
                                 //TODO si "fragment" es null entonces crear el fragmento mapa, agregar un bundel con el parametro tipo_mapa
                                 if(fragment==null){
-                                     fragment=new MapaFragment();
+                                    fragment = new MapaFragment();
+                                    Bundle bundle = new Bundle();
+                                    bundle.putInt("tipo_mapa", 2);
+                                    fragment.setArguments(bundle);
+                                    ((MapaFragment) fragment).setListener(MainActivity.this);
+
 
                                 }
                                 // configurar a la actividad como listener de los eventos del mapa ((MapaFragment) fragment).setListener(this);
