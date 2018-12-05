@@ -28,6 +28,9 @@ import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.maps.model.TileOverlayOptions;
+import com.google.android.gms.maps.model.TileProvider;
+import com.google.maps.android.heatmaps.HeatmapTileProvider;
 
 import java.util.ArrayList;
 import java.util.Objects;
@@ -44,6 +47,8 @@ public class MapaFragment extends SupportMapFragment implements
 
     private static final int EVENTO_LISTA_RECLAMOS=1;
     private static final int EVENTO_BUSCAR_RECLAMOS=2;
+    private static final int EVENTO_HEAT_MAP=3;
+
 
     private GoogleMap miMapa;
     private int tipoMapa;
@@ -113,6 +118,11 @@ public class MapaFragment extends SupportMapFragment implements
                 case 3:
                     obtenerUnRelcamo();
                     break;
+                case 4:
+                    obtenerHetaMap();
+
+                    break;
+
             }
 
 
@@ -169,6 +179,24 @@ public class MapaFragment extends SupportMapFragment implements
 
     }
 
+    private void obtenerHetaMap(){
+        listaReclamos.clear();
+
+        Runnable cargarHeatMap= new Runnable() {
+            @Override
+            public void run() {
+                listaReclamos.addAll(reclamoDao.getAll());
+                Message completeMessage;
+                completeMessage= gestorDeEventos.obtainMessage(EVENTO_HEAT_MAP);
+                completeMessage.sendToTarget();
+
+            }
+        };
+        Thread thread= new Thread(cargarHeatMap);
+        thread.start();
+
+    }
+
     Handler gestorDeEventos= new Handler(){
 
         @Override
@@ -206,6 +234,24 @@ public class MapaFragment extends SupportMapFragment implements
                     radio.setFillColor(Color.TRANSPARENT);
                     radio.setStrokeColor(Color.RED);
                     cu= CameraUpdateFactory.newLatLngZoom(latLng, 15.0f);
+                    miMapa.moveCamera(cu);
+                    break;
+
+
+                case EVENTO_HEAT_MAP:
+                    ArrayList<LatLng>coordenadas = new ArrayList<>();
+                    LatLngBounds.Builder builder1= new LatLngBounds.Builder();
+                    for(int i=0; listaReclamos.size()>i; i++){
+                        latLng= new LatLng(listaReclamos.get(i).getLatitud(),
+                                listaReclamos.get(i).getLongitud());
+                        coordenadas.add(latLng);
+                        builder1.include(latLng);
+                    }
+                    TileProvider heatMapTileProvider = new HeatmapTileProvider.Builder().data(coordenadas)
+                            .build();
+                    miMapa.addTileOverlay(new TileOverlayOptions().tileProvider(heatMapTileProvider));
+                    LatLngBounds latLngBounds= builder1.build();
+                    cu= CameraUpdateFactory.newLatLngBounds(latLngBounds, 0);
                     miMapa.moveCamera(cu);
                     break;
 
