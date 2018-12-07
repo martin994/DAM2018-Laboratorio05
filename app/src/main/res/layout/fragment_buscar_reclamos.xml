@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    tools:context=".BuscarReclamosFragment">
+
+    <!-- TODO: Update blank fragment layout -->
+
+    <TextView
+        android:id="@+id/tvnombrePantalla"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Formulario de busqueda" />
+
+    <TextView
+        android:id="@+id/tvActividadDePantalla"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Buscar por tipo de reclamo" />
+
+    <Spinner
+        android:id="@+id/spinnerDeReclamos"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+
+    <Button
+        android:id="@+id/btnBuscarReclamos"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Buscar" />
+</LinearLayout>
