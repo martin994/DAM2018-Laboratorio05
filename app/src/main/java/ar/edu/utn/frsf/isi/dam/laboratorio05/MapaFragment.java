@@ -28,6 +28,7 @@ import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.android.gms.maps.model.TileOverlayOptions;
 import com.google.android.gms.maps.model.TileProvider;
 import com.google.maps.android.heatmaps.HeatmapTileProvider;
@@ -48,6 +49,7 @@ public class MapaFragment extends SupportMapFragment implements
     private static final int EVENTO_LISTA_RECLAMOS=1;
     private static final int EVENTO_BUSCAR_RECLAMOS=2;
     private static final int EVENTO_HEAT_MAP=3;
+    private static final int EVENTO_BUSCAR_RECLAMOS_TIPO=4;
 
 
     private GoogleMap miMapa;
@@ -123,6 +125,10 @@ public class MapaFragment extends SupportMapFragment implements
 
                     break;
 
+                case 5:
+                    obtenerTipoReclamo();
+                    break;
+
             }
 
 
@@ -155,8 +161,8 @@ public class MapaFragment extends SupportMapFragment implements
                 mensaje.sendToTarget();
             }
         };
-        Thread thread= new Thread(cargarReclamosConMarca);
-        thread.start();
+        Thread t1= new Thread(cargarReclamosConMarca);
+        t1.start();
 
 
     }
@@ -173,9 +179,8 @@ public class MapaFragment extends SupportMapFragment implements
 
             }
         };
-        Thread thread;
-        thread = new Thread(cargarReclamo);
-        thread.start();
+        Thread t2 = new Thread(cargarReclamo);
+        t2.start();
 
     }
 
@@ -192,8 +197,26 @@ public class MapaFragment extends SupportMapFragment implements
 
             }
         };
-        Thread thread= new Thread(cargarHeatMap);
-        thread.start();
+        Thread t3= new Thread(cargarHeatMap);
+        t3.start();
+
+    }
+
+    private void obtenerTipoReclamo(){
+        listaReclamos.clear();
+
+        Runnable cargarReclamosTipo = new Runnable() {
+            @Override
+            public void run() {
+
+                listaReclamos.addAll(reclamoDao.getByTipo(getArguments().getString("tipo_reclamo")));
+                Message completeMesssage;
+                completeMesssage=gestorDeEventos.obtainMessage(EVENTO_BUSCAR_RECLAMOS_TIPO);
+                completeMesssage.sendToTarget();
+            }
+        };
+        Thread t4= new Thread(cargarReclamosTipo);
+        t4.start();
 
     }
 
@@ -240,20 +263,40 @@ public class MapaFragment extends SupportMapFragment implements
 
                 case EVENTO_HEAT_MAP:
                     ArrayList<LatLng>coordenadas = new ArrayList<>();
-                    LatLngBounds.Builder builder1= new LatLngBounds.Builder();
-                    for(int i=0; listaReclamos.size()>i; i++){
-                        latLng= new LatLng(listaReclamos.get(i).getLatitud(),
-                                listaReclamos.get(i).getLongitud());
+                    LatLngBounds.Builder coordenada= new LatLngBounds.Builder();
+                    for(Reclamo r: listaReclamos){
+                        latLng= new LatLng(r.getLatitud(), r.getLongitud());
                         coordenadas.add(latLng);
-                        builder1.include(latLng);
+                        coordenada.include(latLng);
                     }
                     TileProvider heatMapTileProvider = new HeatmapTileProvider.Builder().data(coordenadas)
                             .build();
                     miMapa.addTileOverlay(new TileOverlayOptions().tileProvider(heatMapTileProvider));
-                    LatLngBounds latLngBounds= builder1.build();
+                    LatLngBounds latLngBounds= coordenada.build();
                     cu= CameraUpdateFactory.newLatLngBounds(latLngBounds, 0);
                     miMapa.moveCamera(cu);
                     break;
+
+                case EVENTO_BUSCAR_RECLAMOS_TIPO:
+                    ArrayList<LatLng> coordenadasReclamo= new ArrayList<>();
+                    LatLngBounds.Builder coordenada2= new LatLngBounds.Builder();
+                    PolylineOptions polylineOptions= new PolylineOptions();
+                    for(Reclamo r: listaReclamos){
+                        latLng= new LatLng(r.getLatitud(), r.getLongitud());
+                        miMapa.addMarker(new MarkerOptions().position(latLng));
+                        coordenadasReclamo.add(latLng);
+                        coordenada2.include(latLng);
+                        polylineOptions.add(latLng);
+                    }
+                    miMapa.addPolyline(polylineOptions.width(5).color(Color.RED));
+                    LatLngBounds latLngBounds1= coordenada2.build();
+                    cu= CameraUpdateFactory.newLatLngBounds(latLngBounds1, 0);
+                    miMapa.moveCamera(cu);
+                    break;
+
+
+
+
 
 
 

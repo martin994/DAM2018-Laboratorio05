@@ -16,7 +16,7 @@ import com.google.android.gms.maps.model.LatLng;
 // IMPLEMENTAR dicho método en esta actividad.
 
 public class MainActivity extends AppCompatActivity implements FragmentManager.OnBackStackChangedListener,
-        NuevoReclamoFragment.OnNuevoLugarListener,MapaFragment.onMapaListener {
+        NuevoReclamoFragment.OnNuevoLugarListener,MapaFragment.onMapaListener,BuscarReclamosFragment.OnBuscarListener {
         private DrawerLayout drawerLayout;
         private NavigationView navView;
 
@@ -84,7 +84,7 @@ public class MainActivity extends AppCompatActivity implements FragmentManager.O
 
                                 tag="mapaReclamos";
                                 fragment =  getSupportFragmentManager().findFragmentByTag(tag);
-                                //fragment =  getSupportFragmentManager().findFragmentByTag(tag);
+
                                 //TODO si "fragment" es null entonces crear el fragmento mapa, agregar un bundel con el parametro tipo_mapa
                                 // configurar a la actividad como listener de los eventos del mapa ((MapaFragment) fragment).setListener(this);
                                 if(fragment==null){
@@ -95,10 +95,19 @@ public class MainActivity extends AppCompatActivity implements FragmentManager.O
                                     ((MapaFragment) fragment).setListener(MainActivity.this);
                                 }
                                 fragmentTransaction = true;
+                                break;
 
-
+                            case R.id.optBuscar:
+                                tag="buscarFragment";
+                                fragment= getSupportFragmentManager().findFragmentByTag(tag);
+                                if(fragment==null){
+                                    fragment= new BuscarReclamosFragment();
+                                    ((BuscarReclamosFragment) fragment).setListener(MainActivity.this);
+                                }
+                                fragmentTransaction=true;
 
                                 break;
+
                         }
 
                         if(fragmentTransaction) {
@@ -185,6 +194,27 @@ public class MainActivity extends AppCompatActivity implements FragmentManager.O
                 commit();
 
         getSupportActionBar().setTitle("Seleccione coordenadas:");
+    }
+
+
+    @Override
+    public void buscarReclamosTipo(String tipo) {
+        String tag= "mapaReclamos";
+        Fragment fragment= getSupportFragmentManager().findFragmentByTag(tag);
+        if(fragment==null){
+            fragment= new MapaFragment();
+            ((MapaFragment) fragment).setListener(this);
+        }
+        Bundle bundle= new Bundle();
+        bundle.putInt("tipo_mapa", 5);
+        bundle.putString("tipo_reclamo", tipo);
+        fragment.setArguments(bundle);
+        getSupportFragmentManager()
+                .beginTransaction()
+                .replace(R.id.contenido, fragment)
+                .addToBackStack(null)
+                .commit();
+
     }
 };
 
