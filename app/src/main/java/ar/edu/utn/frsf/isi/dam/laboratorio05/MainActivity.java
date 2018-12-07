@@ -174,6 +174,7 @@ public class MainActivity extends AppCompatActivity implements FragmentManager.O
 
         }
 
+        //Implementacion de las interfaces para que puedan comunicarce con las actividades, dicen que tipo de fragmento van y el tipo de mapa
     @Override
     public void obtenerCoordenadas() {
 

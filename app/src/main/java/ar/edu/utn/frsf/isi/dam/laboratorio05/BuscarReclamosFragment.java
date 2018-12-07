@@ -43,9 +43,9 @@ public class BuscarReclamosFragment extends Fragment {
         btnBuscarRelcamos=(Button)v.findViewById(R.id.btnBuscarReclamos);
         //aca seteo el nombre del tipo de los reclamos
         List<String> nombreReclamos= getNombreReclamos();
-
+        //seteo los nombres de las categorias de los reclamos
         adapterRelcamos= new ArrayAdapter<String>(getContext(), android.R.layout.simple_list_item_1,nombreReclamos);
-
+        //seteo los valores al spinner
         spnlistaDeReclamos.setAdapter(adapterRelcamos);
 
         btnBuscarRelcamos.setOnClickListener(new View.OnClickListener() {
@@ -61,19 +61,19 @@ public class BuscarReclamosFragment extends Fragment {
     private List<String> getNombreReclamos(){
         //armo una lista de string para retornar
         List<String> listaTipo= new ArrayList<>();
-        //tomo una lista de reclamos y me quedo solo con el tipo de reclamo
-        List<Reclamo.TipoReclamo> list= Arrays.asList(Reclamo.TipoReclamo.values());
-        for (int i=0; list.size()>i; i++){
-            listaTipo.add(list.get(i).toString());
-        }
+        //tomo una lista de reclamos y me quedo solo con el tipo de reclamo seleccionado
+        List<Reclamo.TipoReclamo> listasTipoReclamos= Arrays.asList(Reclamo.TipoReclamo.values());
 
+        for(Reclamo.TipoReclamo nr:listasTipoReclamos ){
+            listaTipo.add(nr.toString());
+        }
 
         return  listaTipo;
     }
 
-
+    //defino la interface para que el metodo se pueda comunicar con la actividad y me pueda pasar sus argumentos
     public interface OnBuscarListener{
-        public void buscarReclamosTipo(String tipo);
+         void buscarReclamosTipo(String tipo);
     }
 
     public void setListener (OnBuscarListener listener){ this.listener=listener;}

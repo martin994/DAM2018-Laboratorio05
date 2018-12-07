@@ -45,7 +45,7 @@ import ar.edu.utn.frsf.isi.dam.laboratorio05.modelo.ReclamoDao;
  */
 public class MapaFragment extends SupportMapFragment implements
         OnMapReadyCallback {
-
+    //Evento que me van a decir que tipo de mapa tengo que costruir
     private static final int EVENTO_LISTA_RECLAMOS=1;
     private static final int EVENTO_BUSCAR_RECLAMOS=2;
     private static final int EVENTO_HEAT_MAP=3;
@@ -68,6 +68,7 @@ public class MapaFragment extends SupportMapFragment implements
 
     }
 
+    // seteo el listener
     public void setListener(onMapaListener listener) {
         this.listener = listener;
     }
@@ -85,13 +86,14 @@ public class MapaFragment extends SupportMapFragment implements
         View rootView = super.onCreateView(inflater, container, savedInstanceState);
         tipoMapa = 0;
         Bundle argumentos = getArguments();
-
+        //Verifico el tipo de mapa que se crea con el argumento que me pasa la actividad que lo invoca
         if (argumentos != null) {
+            //aca es donde se me pasa el tipo de mapa de que debo crear
             tipoMapa = argumentos.getInt("tipo_mapa", 0);
         }
 
         getMapAsync(this);
-
+        //creo una instancia del DAO para poder traer los reclamos
         reclamoDao= MyDatabase.getInstance(this.getActivity()).getReclamoDao();
         return rootView;
 
@@ -104,6 +106,7 @@ public class MapaFragment extends SupportMapFragment implements
         //inicializo el mapa con una instacia de googleMap
         miMapa = googleMap;
         actualizarMapa();
+        //De acuerdo al tipo de mapa se llama al metodo correspondiente para armar el maapa
             switch (tipoMapa) {
                 case 1:
                     googleMap.setOnMapLongClickListener(new GoogleMap.OnMapLongClickListener() {
@@ -138,25 +141,27 @@ public class MapaFragment extends SupportMapFragment implements
 
 
     private void actualizarMapa() {
-
+        //pido permisos para que el usuario pueda usar la aplicacion y que solamente pueda acceder si otorga los permisos
         if(ActivityCompat.checkSelfPermission(getContext(), Manifest.permission.ACCESS_FINE_LOCATION)
                 != PackageManager.PERMISSION_GRANTED){
             ActivityCompat.requestPermissions(Objects.requireNonNull(getActivity()), new String[] {Manifest.permission.ACCESS_FINE_LOCATION},
                     9999);
         }
         miMapa.setMyLocationEnabled(true);
-        // una vez que me da los permisos recien ahi le permito usar la funcion de localizacion
+
 
     }
 
 
-
+//como tengo que acceder a la base de datos todos estos metodos se van a hacer en hilos secundarios gestionados por el handler gestor de eventos
     private void obtenerListaDeReclamos(){
         listaReclamos.clear();
         Runnable cargarReclamosConMarca = new Runnable() {
             @Override
             public void run() {
+                //traigo todos los reclamos
                 listaReclamos.addAll(reclamoDao.getAll());
+                //paso un mensaje al gesto de eventos con el evento correspondiente para saber que mapa tiene que armar
                 Message mensaje = gestorDeEventos.obtainMessage(EVENTO_LISTA_RECLAMOS);
                 mensaje.sendToTarget();
             }
@@ -172,6 +177,7 @@ public class MapaFragment extends SupportMapFragment implements
         Runnable cargarReclamo = new Runnable() {
             @Override
             public void run() {
+                //traigo un reclamo en especifico por su id
 
                 reclamo=reclamoDao.getById(getArguments().getInt("idReclamo"));
                 Message mensaje = gestorDeEventos.obtainMessage(EVENTO_BUSCAR_RECLAMOS);
@@ -208,7 +214,7 @@ public class MapaFragment extends SupportMapFragment implements
         Runnable cargarReclamosTipo = new Runnable() {
             @Override
             public void run() {
-
+                //traigo los reclamos por el tipo
                 listaReclamos.addAll(reclamoDao.getByTipo(getArguments().getString("tipo_reclamo")));
                 Message completeMesssage;
                 completeMesssage=gestorDeEventos.obtainMessage(EVENTO_BUSCAR_RECLAMOS_TIPO);
@@ -219,33 +225,37 @@ public class MapaFragment extends SupportMapFragment implements
         t4.start();
 
     }
-
+    //creo un Handler que va servir para gestionar el tipo de mapa que tengo creaer de acuerdo al evento que se le pasa
     Handler gestorDeEventos= new Handler(){
 
         @Override
         public void handleMessage(Message msg) {
             super.handleMessage(msg);
+            //objeto de tipo LatLng para poder ubicar las marcas
             LatLng latLng;
-            CameraUpdate cu;
+            //objeto para manipular la posicion de la camara
+            CameraUpdate camara;
             switch (msg.what){
                 case EVENTO_LISTA_RECLAMOS:
-
+                    //Array list para añadir marcadores al mapa
                 ArrayList<MarkerOptions> marcadores=new ArrayList<>();
-
+                //recorrer la lista de reclamos
                 for (Reclamo r: listaReclamos){
-
+                    //obtener la latitud y longitud de cada reclamos para setearla al objeto
                     latLng= new LatLng(r.getLatitud(),r.getLongitud());
-
+                    //agrego la marca al mapa y al array de marcas
                     miMapa.addMarker(new MarkerOptions().position(latLng));
                     marcadores.add(new MarkerOptions().position(latLng));
 
                 }
-                LatLngBounds.Builder builder= new LatLngBounds.Builder();
+                //LatLngBounds me permite definir los limites de la pantalla(marco) para que el nivel de zoom sea correcto y se puedan vilualizar todas las marcas
+                LatLngBounds.Builder marco= new LatLngBounds.Builder();
                 for(MarkerOptions markerOptions: marcadores)
-                    builder.include(markerOptions.getPosition());
-                LatLngBounds bounds= builder.build();
-                cu= CameraUpdateFactory.newLatLngBounds(bounds, 0);
-                    miMapa.moveCamera(cu);
+                    marco.include(markerOptions.getPosition());
+
+                //Seteo a la camara el marco con sus limites correspondientes con el marco
+                camara= CameraUpdateFactory.newLatLngBounds(marco.build(), 50);//nivel de limites para que se vena toas las marcas
+                    miMapa.moveCamera(camara);
 
                  break;
 
@@ -253,45 +263,46 @@ public class MapaFragment extends SupportMapFragment implements
 
                     latLng=new LatLng(reclamo.getLatitud(),reclamo.getLongitud());
                     miMapa.addMarker(new MarkerOptions().position(latLng));
+                    //Aca creo la circunferencia al rededor de la marca seleccionada y seteo valores de radio correspondites y colores
                     Circle radio= miMapa.addCircle(new CircleOptions().center(latLng).radius(500));
                     radio.setFillColor(Color.TRANSPARENT);
                     radio.setStrokeColor(Color.RED);
-                    cu= CameraUpdateFactory.newLatLngZoom(latLng, 15.0f);
-                    miMapa.moveCamera(cu);
+                    //Elijo el nivel de zoom adecuado para que pueda visualizar
+                    camara= CameraUpdateFactory.newLatLngZoom(latLng, 15.0f);
+                    miMapa.moveCamera(camara);
                     break;
 
 
                 case EVENTO_HEAT_MAP:
                     ArrayList<LatLng>coordenadas = new ArrayList<>();
-                    LatLngBounds.Builder coordenada= new LatLngBounds.Builder();
+                    LatLngBounds.Builder marco2= new LatLngBounds.Builder();
                     for(Reclamo r: listaReclamos){
                         latLng= new LatLng(r.getLatitud(), r.getLongitud());
                         coordenadas.add(latLng);
-                        coordenada.include(latLng);
+                        marco2.include(latLng);
                     }
-                    TileProvider heatMapTileProvider = new HeatmapTileProvider.Builder().data(coordenadas)
+                    //Creo un el mapa de calor y le seteo las coordenadas
+                    TileProvider mapaCalor = new HeatmapTileProvider.Builder().data(coordenadas)
                             .build();
-                    miMapa.addTileOverlay(new TileOverlayOptions().tileProvider(heatMapTileProvider));
-                    LatLngBounds latLngBounds= coordenada.build();
-                    cu= CameraUpdateFactory.newLatLngBounds(latLngBounds, 0);
-                    miMapa.moveCamera(cu);
+                    miMapa.addTileOverlay(new TileOverlayOptions().tileProvider(mapaCalor));
+                    camara= CameraUpdateFactory.newLatLngBounds(marco2.build(), 50);
+                    miMapa.moveCamera(camara);
                     break;
 
                 case EVENTO_BUSCAR_RECLAMOS_TIPO:
                     ArrayList<LatLng> coordenadasReclamo= new ArrayList<>();
-                    LatLngBounds.Builder coordenada2= new LatLngBounds.Builder();
+                    LatLngBounds.Builder marco3= new LatLngBounds.Builder();
                     PolylineOptions polylineOptions= new PolylineOptions();
                     for(Reclamo r: listaReclamos){
                         latLng= new LatLng(r.getLatitud(), r.getLongitud());
                         miMapa.addMarker(new MarkerOptions().position(latLng));
                         coordenadasReclamo.add(latLng);
-                        coordenada2.include(latLng);
+                        marco3.include(latLng);
                         polylineOptions.add(latLng);
                     }
                     miMapa.addPolyline(polylineOptions.width(5).color(Color.RED));
-                    LatLngBounds latLngBounds1= coordenada2.build();
-                    cu= CameraUpdateFactory.newLatLngBounds(latLngBounds1, 0);
-                    miMapa.moveCamera(cu);
+                    camara= CameraUpdateFactory.newLatLngBounds(marco3.build(), 50);
+                    miMapa.moveCamera(camara);
                     break;
 
 
