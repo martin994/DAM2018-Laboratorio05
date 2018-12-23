@@ -239,17 +239,19 @@ public class MapaFragment extends SupportMapFragment implements
                 case EVENTO_LISTA_RECLAMOS:
                     //Array list para añadir marcadores al mapa
                 ArrayList<MarkerOptions> marcadores=new ArrayList<>();
+                //LatLngBounds me permite definir los limites de la pantalla(marco) para que el nivel de zoom sea correcto
+                    // y se puedan vilualizar todas las marcas
+                    LatLngBounds.Builder marco= new LatLngBounds.Builder();
                 //recorrer la lista de reclamos
                 for (Reclamo r: listaReclamos){
                     //obtener la latitud y longitud de cada reclamos para setearla al objeto
                     latLng= new LatLng(r.getLatitud(),r.getLongitud());
                     //agrego la marca al mapa y al array de marcas
-                    miMapa.addMarker(new MarkerOptions().position(latLng));
+                    miMapa.addMarker(new MarkerOptions().position(latLng).title(r.getTipo().toString()+"\n"+r.getReclamo()));
                     marcadores.add(new MarkerOptions().position(latLng));
 
                 }
-                //LatLngBounds me permite definir los limites de la pantalla(marco) para que el nivel de zoom sea correcto y se puedan vilualizar todas las marcas
-                LatLngBounds.Builder marco= new LatLngBounds.Builder();
+
                 for(MarkerOptions markerOptions: marcadores)
                     marco.include(markerOptions.getPosition());
 
