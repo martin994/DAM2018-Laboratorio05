@@ -369,14 +369,21 @@ public class NuevoReclamoFragment extends Fragment {
         public void onClick(View view) {
             switch (view.getId()){
                 case R.id.buttonReproducir:
+
                     if(reproduciendo){
                         ((Button) view).setText("Reproducir");
                         reproduciendo=false;
                         terminarReproducir();
+                        btnGrabarAudio.setEnabled( true );
+
+
                     }else{
                         ((Button) view).setText("pausar.....");
                         reproduciendo=true;
                         reproducir();
+                        btnGrabarAudio.setEnabled( false );
+
+
                     }
                     break;
                 case R.id.buttonGrabar:
@@ -392,6 +399,7 @@ public class NuevoReclamoFragment extends Fragment {
                                 ((Button) view).setText( "Grabar" );
                                 grabando = false;
                                 terminarGrabar();
+                                btnReproducirAudio.setEnabled( true );
                             } else {
                                 String timeStamp = new SimpleDateFormat( "yyyyMMdd_HHmmss" ).format( new Date() );
                                 String audioFileName = "/MP3_" + timeStamp + ".3gp";
@@ -399,7 +407,8 @@ public class NuevoReclamoFragment extends Fragment {
                                 ((Button) view).setText( "grabando....." );
                                 grabando = true;
                                 grabar();
-                                // en realidad pedir permiso!!!
+                                btnReproducirAudio.setEnabled( false );
+
                             }
                         }
                     }
