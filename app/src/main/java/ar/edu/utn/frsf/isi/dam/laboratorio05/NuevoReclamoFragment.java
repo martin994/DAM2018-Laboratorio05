@@ -16,10 +16,13 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.content.FileProvider;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
@@ -76,7 +79,8 @@ public class NuevoReclamoFragment extends Fragment {
     private Boolean reproduciendo = false;
 
     private String audioPath;
-
+    private Boolean tieneFoto=false;
+    private Boolean tieneAudio=false;
 
 
     private ArrayAdapter<Reclamo.TipoReclamo> tipoReclamoAdapter;
@@ -119,12 +123,71 @@ public class NuevoReclamoFragment extends Fragment {
 
         cargarReclamo(idReclamo);
 
+        //validaciones del guardado de reclamos
+
+        tipoReclamo.setOnItemSelectedListener( new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                String tipo=parent.getItemAtPosition(position).toString();
+
+                if((tipo.equals( "CALLE_EN_MAL_ESTADO" )||tipo.equals("VEREDAS"))&&tieneFoto){
+                    btnGuardar.setEnabled( true );
+                }
+
+                else if (reclamoDesc.getText().length()>8||tieneAudio){
+                    btnGuardar.setEnabled( true );
+
+                }
+
+                else {
+                    btnGuardar.setEnabled( false );
+                }
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+
+            }
+        } );
+
+
 
         boolean edicionActivada = !tvCoord.getText().toString().equals("0;0");
         reclamoDesc.setEnabled(edicionActivada );
         mail.setEnabled(edicionActivada );
         tipoReclamo.setEnabled(edicionActivada);
         btnGuardar.setEnabled(edicionActivada);
+
+        reclamoDesc.addTextChangedListener( new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+                String tipo=tipoReclamo.getSelectedItem().toString();
+
+                if((tipo.equals( "CALLE_EN_MAL_ESTADO" )||tipo.equals("VEREDAS"))&&tieneFoto){
+                    btnGuardar.setEnabled( true );
+                }
+
+                else if (reclamoDesc.getText().length()>8||tieneAudio){
+                    btnGuardar.setEnabled( true );
+
+                }
+
+                else {
+                    btnGuardar.setEnabled( false );
+                }
+
+            }
+        } );
 
         buscarCoord.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -211,6 +274,7 @@ public class NuevoReclamoFragment extends Fragment {
         reclamoActual.setTipo(tipoReclamoAdapter.getItem(tipoReclamo.getSelectedItemPosition()));
         reclamoActual.setPathFoto( pathFoto );
         reclamoActual.setPathAudio( audioPath );
+
         if(tvCoord.getText().toString().length()>0 && tvCoord.getText().toString().contains(";")) {
             String[] coordenadas = tvCoord.getText().toString().split(";");
             reclamoActual.setLatitud(Double.valueOf(coordenadas[0]));
@@ -231,6 +295,7 @@ public class NuevoReclamoFragment extends Fragment {
                         mail.setText(R.string.texto_vacio);
                         tvCoord.setText(R.string.texto_vacio);
                         reclamoDesc.setText(R.string.texto_vacio);
+                        ivFoto.setImageResource( R.drawable.ic_launcher_background );
                         getActivity().getFragmentManager().popBackStack();
                     }
                 });
@@ -307,6 +372,7 @@ public class NuevoReclamoFragment extends Fragment {
             }
             if (imageBitmap != null) {
                 ivFoto.setImageBitmap(imageBitmap);
+                tieneFoto=true;
             }
 
         }
@@ -374,6 +440,7 @@ public class NuevoReclamoFragment extends Fragment {
                         ((Button) view).setText("Reproducir");
                         reproduciendo=false;
                         terminarReproducir();
+                        tieneAudio=true;
                         btnGrabarAudio.setEnabled( true );
 
 
