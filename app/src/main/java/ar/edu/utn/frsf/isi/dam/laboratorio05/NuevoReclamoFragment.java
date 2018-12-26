@@ -6,16 +6,17 @@ import android.app.Activity;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
+import android.media.MediaPlayer;
+import android.media.MediaRecorder;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
-import android.os.Handler;
-import android.os.Message;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.content.FileProvider;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -26,7 +27,6 @@ import android.widget.ImageView;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.provider.MediaStore;
-import android.content.Context;
 
 import java.io.File;
 import java.io.IOException;
@@ -64,6 +64,20 @@ public class NuevoReclamoFragment extends Fragment {
     private ImageView ivFoto;
     private final int REQUEST_IMAGE_SAVE=2;
      private String pathFoto;
+    //Variables necesarios para la manipulacion del audio
+
+    private Button btnGrabarAudio;
+    private Button btnReproducirAudio;
+    private static final String LOG_TAG = "AudioRecordTest";
+    private MediaRecorder mRecorder = null;
+    private MediaPlayer mPlayer = null;
+
+    private Boolean grabando = false;
+    private Boolean reproduciendo = false;
+
+    private String audioPath;
+
+
 
     private ArrayAdapter<Reclamo.TipoReclamo> tipoReclamoAdapter;
     public NuevoReclamoFragment() {
@@ -84,8 +98,15 @@ public class NuevoReclamoFragment extends Fragment {
         tvCoord= (TextView) v.findViewById(R.id.reclamo_coord);
         buscarCoord= (Button) v.findViewById(R.id.btnBuscarCoordenadas);
         btnGuardar= (Button) v.findViewById(R.id.btnGuardar);
+        //Inicializacion de las variables de los componentes de la foto
         btnSacarFoto=(Button)v.findViewById(R.id.buttonSacarFoto);
         ivFoto=(ImageView)v.findViewById(R.id.imageViewFoto);
+        //Inicializacion de las variables de los componentes de los audios
+        btnGrabarAudio =(Button)v.findViewById( R.id.buttonGrabar );
+        btnReproducirAudio=(Button)v.findViewById( R.id.buttonReproducir);
+        btnReproducirAudio.setOnClickListener( listenerPlayer );
+        btnGrabarAudio.setOnClickListener( listenerPlayer );
+
 
         tipoReclamoAdapter = new ArrayAdapter<Reclamo.TipoReclamo>(getActivity(),android.R.layout.simple_spinner_item,Reclamo.TipoReclamo.values());
         tipoReclamoAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
@@ -189,6 +210,7 @@ public class NuevoReclamoFragment extends Fragment {
         reclamoActual.setReclamo(reclamoDesc.getText().toString());
         reclamoActual.setTipo(tipoReclamoAdapter.getItem(tipoReclamo.getSelectedItemPosition()));
         reclamoActual.setPathFoto( pathFoto );
+        reclamoActual.setPathAudio( audioPath );
         if(tvCoord.getText().toString().length()>0 && tvCoord.getText().toString().contains(";")) {
             String[] coordenadas = tvCoord.getText().toString().split(";");
             reclamoActual.setLatitud(Double.valueOf(coordenadas[0]));
@@ -242,6 +264,9 @@ public class NuevoReclamoFragment extends Fragment {
         return image;
     }
 
+
+
+
     //metodo para sacar la foto
     private void sacarGuardarFoto(){
         Intent sacarFoto= new Intent( MediaStore.ACTION_IMAGE_CAPTURE);
@@ -289,6 +314,101 @@ public class NuevoReclamoFragment extends Fragment {
 
     }
 
+    //metodos para grabar y reproducir audio
+
+
+
+    private void grabar() {
+        mRecorder = new MediaRecorder();
+        mRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
+        mRecorder.setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP);
+        mRecorder.setOutputFile(audioPath);
+        mRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB);
+        try {
+            mRecorder.prepare();
+            mRecorder.start();
+        } catch (IOException e) {
+            Log.e(LOG_TAG, "prepare() failed");
+        }
+
+
+    }
+    private void terminarGrabar() {
+
+        try {
+            mRecorder.stop();
+            mRecorder.release();
+            mRecorder = null;
+
+        } catch (RuntimeException e){
+            e.printStackTrace();
+        }
+
+
+    }
+
+    private void reproducir() {
+        mPlayer = new MediaPlayer();
+        try {
+            mPlayer.setDataSource(audioPath);
+            mPlayer.prepare();
+            mPlayer.start();
+        } catch (IOException e) {
+            Log.e(LOG_TAG, "prepare() failed");
+        }
+    }
+
+    private void terminarReproducir() {
+        mPlayer.release();
+        mPlayer = null;
+    }
+
+
+    View.OnClickListener listenerPlayer = new View.OnClickListener() {
+        @Override
+        public void onClick(View view) {
+            switch (view.getId()){
+                case R.id.buttonReproducir:
+                    if(reproduciendo){
+                        ((Button) view).setText("Reproducir");
+                        reproduciendo=false;
+                        terminarReproducir();
+                    }else{
+                        ((Button) view).setText("pausar.....");
+                        reproduciendo=true;
+                        reproducir();
+                    }
+                    break;
+                case R.id.buttonGrabar:
+
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                        if (ContextCompat.checkSelfPermission( getActivity(),
+                                Manifest.permission.RECORD_AUDIO )
+                                != PackageManager.PERMISSION_GRANTED) {
+                            ActivityCompat.requestPermissions( getActivity(), new String[]{Manifest.permission.RECORD_AUDIO}, 2 );
+
+                        } else {
+                            if (grabando) {
+                                ((Button) view).setText( "Grabar" );
+                                grabando = false;
+                                terminarGrabar();
+                            } else {
+                                String timeStamp = new SimpleDateFormat( "yyyyMMdd_HHmmss" ).format( new Date() );
+                                String audioFileName = "/MP3_" + timeStamp + ".3gp";
+                                audioPath = Environment.getExternalStorageDirectory().getAbsolutePath() + audioFileName;
+                                ((Button) view).setText( "grabando....." );
+                                grabando = true;
+                                grabar();
+                                // en realidad pedir permiso!!!
+                            }
+                        }
+                    }
+
+
+                    break;
+            }
+        }
+    };
 
 
 }

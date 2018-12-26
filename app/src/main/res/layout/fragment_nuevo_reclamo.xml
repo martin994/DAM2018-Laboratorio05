@@ -6,6 +6,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".NuevoReclamoFragment">
+
     <TextView
         android:text="Coordenadas"
         android:layout_width="match_parent"
@@ -52,7 +53,7 @@
 
     <LinearLayout
         android:layout_width="405dp"
-        android:layout_height="166dp"
+        android:layout_height="139dp"
         android:orientation="horizontal">
 
         <ImageView
@@ -70,9 +71,35 @@
             android:text="Sacar Foto" />
     </LinearLayout>
 
+    <TextView
+        android:id="@+id/textView5"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Opciones de audio" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="37dp"
+        android:orientation="horizontal">
+
+        <Button
+            android:id="@+id/buttonGrabar"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Grabar" />
+
+        <Button
+            android:id="@+id/buttonReproducir"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Reproducir" />
+    </LinearLayout>
+
     <Button
         android:id="@+id/btnGuardar"
-        android:text="Guardar"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content" />
+        android:layout_height="wrap_content"
+        android:text="Guardar" />
 </LinearLayout>
