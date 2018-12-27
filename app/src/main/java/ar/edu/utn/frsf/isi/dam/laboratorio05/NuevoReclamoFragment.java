@@ -147,6 +147,8 @@ public class NuevoReclamoFragment extends Fragment {
             @Override
             public void onNothingSelected(AdapterView<?> parent) {
 
+
+
             }
         } );
 
@@ -243,7 +245,7 @@ public class NuevoReclamoFragment extends Fragment {
                             mail.setText(reclamoActual.getEmail());
                             tvCoord.setText(reclamoActual.getLatitud()+";"+reclamoActual.getLongitud());
                             reclamoDesc.setText(reclamoActual.getReclamo());
-                            reclamoActual.getPathFoto();
+                            ivFoto.setImageURI(Uri.parse(reclamoActual.getPathFoto()));
                             Reclamo.TipoReclamo[] tipos= Reclamo.TipoReclamo.values();
                             for(int i=0;i<tipos.length;i++) {
                                 if(tipos[i].equals(reclamoActual.getTipo())) {
@@ -295,7 +297,7 @@ public class NuevoReclamoFragment extends Fragment {
                         mail.setText(R.string.texto_vacio);
                         tvCoord.setText(R.string.texto_vacio);
                         reclamoDesc.setText(R.string.texto_vacio);
-                        ivFoto.setImageResource( R.drawable.ic_launcher_background );
+                        ivFoto.setImageBitmap( null );
                         getActivity().getFragmentManager().popBackStack();
                     }
                 });
