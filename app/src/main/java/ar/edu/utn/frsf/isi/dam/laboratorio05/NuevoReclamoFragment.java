@@ -418,7 +418,7 @@ public class NuevoReclamoFragment extends Fragment {
     private void reproducir() {
         mPlayer = new MediaPlayer();
         try {
-            mPlayer.setDataSource(audioPath);
+            mPlayer.setDataSource(reclamoActual.getPathAudio());
             mPlayer.prepare();
             mPlayer.start();
         } catch (IOException e) {
@@ -473,6 +473,7 @@ public class NuevoReclamoFragment extends Fragment {
                                 String timeStamp = new SimpleDateFormat( "yyyyMMdd_HHmmss" ).format( new Date() );
                                 String audioFileName = "/MP3_" + timeStamp + ".3gp";
                                 audioPath = Environment.getExternalStorageDirectory().getAbsolutePath() + audioFileName;
+                                reclamoActual.setPathAudio( audioPath );
                                 ((Button) view).setText( "grabando....." );
                                 grabando = true;
                                 grabar();
